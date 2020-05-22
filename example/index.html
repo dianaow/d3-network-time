@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Add a geocoder</title>
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <script src="../build/d3-network-time.js"></script>
+  <style>
+    body { margin: 0; padding: 0; }
+  </style>
+</head>
+<body>
+  <div class="Network"></div>
+  <script>
+
+    async function init() {
+
+      const nodes = await d3.json('nodes.json');
+      const links = await d3.json('links.json');
+
+      const processedLinks = processLinks(links)
+      const processedNodes = processNodes(nodes, links, "0")
+      const data = {nodes: processedNodes, links: processedLinks}
+      console.log(data)
+      d3.network('.Network')
+        .width(screen.width)
+        .height(screen.height)
+        .start('2020-05-11')
+        .end('2020-05-13')
+        .style('auto')(data)
+
+    }
+
+    function processLinks(links) {
+
+      links.forEach((d,i) => {
+        d.id = i
+        d.start_id = d.src_number.toString()
+        d.end_id = d.tgt_number.toString()
+        d.label = 'Related'
+      })
+
+      return links
+    }
+
+    function processNodes(nodes, links, rootID=null) {
+
+      nodes.forEach((d,i) => {
+        let link = links.find(el=>el.end_id === d.id.toString())
+        d.date = link ? link.date : "2020-05-11"
+        d.id = d.id.toString()
+        if(d.id.toString() === rootID){
+          d.root = 'root'
+        }
+      })
+
+      return nodes
+    }
+
+    init()
+  </script>
+</body>
+</html>
