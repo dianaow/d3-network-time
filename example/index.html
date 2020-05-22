@@ -22,7 +22,7 @@
       const processedLinks = processLinks(links)
       const processedNodes = processNodes(nodes, links, "0")
       const data = {nodes: processedNodes, links: processedLinks}
-      console.log(data)
+
       d3.network('.Network')
         .width(screen.width)
         .height(screen.height)

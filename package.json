@@ -4,7 +4,9 @@
   "description": "a d3 plugin to create a temporal network",
   "keywords": [
     "d3",
-    "d3-module"
+    "d3-module",
+    "network",
+    "timeline"
   ],
   "license": "BSD-3-Clause",
   "main": "build/d3-network-time.js",

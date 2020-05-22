@@ -82,8 +82,7 @@ export function network(selector) {
       g.append("g").attr("class", "nodes")
     }
 
-    const { nodes, links } = data
-    const timeline = processTimeline(links)
+    const timeline = processTimeline(data.links)
     start = start || timeline[0].key //if start date is not specified, default to first date found in data
     end = end || timeline[timeline.length - 1].key //if end date is not specified, default to last date found in data
     let START = typeof start === "string" ? Consts.parseDate(start) : start
