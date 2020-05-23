@@ -1,8 +1,8 @@
 (function (global, factory) {
-typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-force'), require('d3-selection'), require('d3-scale'), require('d3-array'), require('d3-collection'), require('d3-time-format')) :
-typeof define === 'function' && define.amd ? define(['exports', 'd3-force', 'd3-selection', 'd3-scale', 'd3-array', 'd3-collection', 'd3-time-format'], factory) :
-(global = global || self, factory(global.d3 = global.d3 || {}, global.d3, global.d3, global.d3, global.d3, global.d3, global.d3));
-}(this, (function (exports, d3Force, d3Selection, d3Scale, d3Array, d3Collection, d3TimeFormat) { 'use strict';
+typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-force'), require('d3-selection'), require('d3-scale'), require('d3-array'), require('d3-collection'), require('d3-transition'), require('d3-time-format')) :
+typeof define === 'function' && define.amd ? define(['exports', 'd3-force', 'd3-selection', 'd3-scale', 'd3-array', 'd3-collection', 'd3-transition', 'd3-time-format'], factory) :
+(global = global || self, factory(global.d3 = global.d3 || {}, global.d3, global.d3, global.d3, global.d3, global.d3, global.d3, global.d3));
+}(this, (function (exports, d3Force, d3Selection, d3Scale, d3Array, d3Collection, d3Transition, d3TimeFormat) { 'use strict';
 
 function _extends() {
   _extends = Object.assign || function (target) {
@@ -122,15 +122,17 @@ function network(selector) {
     linkTextFill: themeState.secondary
   };
 
-  function networkLayout(data) {
+  function networkLayout(_ref) {
+    var data = _extends({}, _ref);
+
     var graphWrapper = {
       width: width,
       height: height
     };
     selector = selector || "body";
 
-    if (d3Selection.select(selector).select("svg") !== null) {
-      var svg = d3Selection.select(selector).append("svg").attr("class", "networkWrapper").attr("width", graphWrapper.width).attr("height", graphWrapper.height).attr("fill", themeState.secondary);
+    if (d3Selection.select(selector).select("svg").empty()) {
+      var svg = d3Selection.select(selector).append("svg").attr("class", "networkWrapper").attr("width", graphWrapper.width / 2).attr("height", graphWrapper.height / 2).attr("viewBox", [0, 0, graphWrapper.width, graphWrapper.height]).attr("fill", themeState.secondary);
       var g = svg.append("g").attr("class", "network");
       g.append("g").attr("class", "links");
       g.append("g").attr("class", "nodes");
@@ -758,12 +760,7 @@ function network(selector) {
   return networkLayout;
 } //network
 
-function timeline() {
-  return 42;
-}
-
 exports.network = network;
-exports.timeline = timeline;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 

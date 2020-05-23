@@ -21,14 +21,7 @@ export const linkTextOpacity = 0
 export const linkTextSize = 8
 export const transitionDuration = 750
 
-export const formatYear = timeFormat("%Y")
-export const formatDate = timeFormat("%d %b %Y")
-export const formatFullDate = timeFormat("%d/%m/%y")
 export const parseDate = timeParse("%Y-%m-%d")
-export const parseDate1 = timeParse("%Y")
-export const parseDate2 = timeParse("%b %Y")
-export const currentDateString = "2020-05-11"
-export const currentDate = parseDate(currentDateString)
 
 const nodeRadiusScale = scaleSqrt().domain([1, 50]).range([10, nodeRadius])
 

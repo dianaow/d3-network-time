@@ -11,24 +11,23 @@
   </style>
 </head>
 <body>
-  <div class="Network" width=1000 height=800></div>
+  <div class="Network"></div>
   <script>
 
     async function init() {
 
-      const nodes = await d3.json('nodes.json');
-      const links = await d3.json('links.json');
+      const data = await d3.json('miserables.json');
 
-      const processedLinks = processLinks(links)
-      const processedNodes = processNodes(nodes, links, "0")
-      const data = {nodes: processedNodes, links: processedLinks}
+      const processedLinks = processLinks(data.links)
+      const processedNodes = processNodes(data.nodes, data.links)
+      const data1 = {nodes: processedNodes, links: processedLinks}
 
       d3.network('.Network')
         .width(screen.width)
         .height(screen.height)
-        .start('2020-05-11')
-        .end('2020-05-13')
-        .style('auto')(data)
+        .start('2020-05-01')
+        .end('2020-05-03')
+        .style('auto')(data1)
 
     }
 
@@ -36,8 +35,8 @@
 
       links.forEach((d,i) => {
         d.id = i
-        d.start_id = d.src_number.toString()
-        d.end_id = d.tgt_number.toString()
+        d.start_id = d.source.toString()
+        d.end_id = d.target.toString()
         d.label = 'Related'
       })
 
@@ -48,7 +47,7 @@
 
       nodes.forEach((d,i) => {
         let link = links.find(el=>el.end_id === d.id.toString())
-        d.date = link ? link.date : "2020-05-11"
+        d.date = link ? link.date : "2020-05-01"
         d.id = d.id.toString()
         if(d.id.toString() === rootID){
           d.root = 'root'

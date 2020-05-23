@@ -3,6 +3,7 @@ import { select } from "d3-selection"
 import { scaleOrdinal, scaleLinear } from "d3-scale"
 import { sum, extent } from "d3-array"
 import { nest } from "d3-collection"
+import { transition } from "d3-transition"
 
 import * as Consts from "./consts"
 import { generatePath } from "./utils"
@@ -63,11 +64,11 @@ export function network(selector) {
     linkTextFill: themeState.secondary,
   }
 
-  function networkLayout(data) {
+  function networkLayout({ ...data }) {
     const graphWrapper = { width, height }
     selector = selector || "body"
 
-    if (select(selector).select("svg") !== null) {
+    if (select(selector).select("svg").empty()) {
       const svg = select(selector)
         .append("svg")
         .attr("class", "networkWrapper")
