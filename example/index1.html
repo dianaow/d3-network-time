@@ -46,8 +46,6 @@
     function processNodes(nodes, links, rootID=null) {
 
       nodes.forEach((d,i) => {
-        let link = links.find(el=>el.end_id === d.id.toString())
-        d.date = link ? link.date : "2020-05-01"
         d.id = d.id.toString()
         if(d.id.toString() === rootID){
           d.root = 'root'

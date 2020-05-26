@@ -9,7 +9,8 @@ This is a d3 plugin to create a temporal network visualization.
 
 ## Examples
 
-- an [example]() visualizing changes to a single network with a fixed root over time
+- an [example](https://observablehq.com/@dianaow/temporal-network-visualization) visualizing changes to a single network with a fixed root over time
+- an [example](https://observablehq.com/@dianaow/temporal-network-visualization/2) visualizing changes to a disjointed network over time
 
 ## Installing
 
@@ -26,6 +27,13 @@ Otherwise, download the [latest build](https://github.com/dianaow/d3-network-tim
 <script src="d3-network-map.js"></script>
 <script>
   var network = d3.network()
+
+  //Example
+  network
+    .start('2020-05-01')
+    .end('2020-05-03')
+    .style('auto')(data)
+
 </script>
 ```
 
