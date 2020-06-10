@@ -16,19 +16,20 @@
 
     async function init() {
 
-      const nodes = await d3.json('nodes.json');
-      const links = await d3.json('links.json');
-
+      const nodes = await d3.json('nodes1.json')
+      const links = await d3.json('links1.json')
       const processedLinks = processLinks(links)
-      const processedNodes = processNodes(nodes, links, "0")
+      const processedNodes = processNodes(nodes, links)
       const data = {nodes: processedNodes, links: processedLinks}
+
+      console.log(data)
 
       d3.network('.Network')
         .width(screen.width)
         .height(screen.height)
-        .start('2020-05-11')
-        .end('2020-05-13')
-        .style('auto')(data)
+        .start(1217567877)
+        .end(1218036494)
+        .style({mode: 'auto', step: 'day', show_time: true})(data)
 
     }
 
@@ -36,23 +37,18 @@
 
       links.forEach((d,i) => {
         d.id = i
-        d.start_id = d.src_number.toString()
-        d.end_id = d.tgt_number.toString()
-        d.label = 'Related'
+        d.date = +d.timestamp
       })
 
       return links
     }
 
-    function processNodes(nodes, links, rootID=null) {
+
+    function processNodes(nodes, links) {
 
       nodes.forEach((d,i) => {
-        let link = links.find(el=>el.end_id === d.id.toString())
-        d.date = link ? link.date : "2020-05-11"
-        d.id = d.id.toString()
-        if(d.id.toString() === rootID){
-          d.root = 'root'
-        }
+        let link = links.find(el=>el.end_id === d.id) || links.find(el=>el.start_id === d.id)
+        d.date = +link.date
       })
 
       return nodes

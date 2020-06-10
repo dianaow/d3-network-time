@@ -7,6 +7,8 @@ This is a d3 plugin to create a temporal network visualization.
 - dynamic: animates the evolution of the network over time, with the option to display each iteration between dates, or just a single step transition between two dates
 - static: only displays the network at a specific point in time
 
+![](example.mov)
+
 ## Examples
 
 - an [example](https://observablehq.com/@dianaow/temporal-network-visualization) visualizing changes to a single network with a fixed root over time
@@ -30,10 +32,12 @@ Otherwise, download the [latest build](https://github.com/dianaow/d3-network-tim
 
   //Example
   network
-    .start('2020-05-01')
-    .end('2020-05-03')
-    .style('auto')(data)
-
+    .selector(".Network")
+    .width(1200)
+    .height(800)
+    .start(1217567877)
+    .end(1218036494)
+    .style({ mode: "auto", step: "day", show_time: true })(data)
 </script>
 ```
 
@@ -49,32 +53,34 @@ Creates a network layout with the specified _data_. The animation starts automat
 
 The dataset must contain an object of nodes and links with the following attributes:
 
+Timestamps of nodes and links must be in <b>UNIX Epoch time</b>.
+
 ```js
 var data = {
   nodes: [
     {
       id: "1",
-      date: "2020-05-01",
+      date: 1217567877,
     },
     {
       id: "2",
-      date: "2020-05-01",
+      date: 1217567877,
     },
     {
       id: "3",
-      date: "2020-05-02",
+      date: 1218036494,
     },
   ],
   links: [
     {
       start_id: "1",
       end_id: "2",
-      date: "2020-05-01",
+      date: 1217567877,
     },
     {
       start_id: "1",
       end_id: "3",
-      date: "2020-05-02",
+      date: 1218036494,
     },
   ],
 }
@@ -94,12 +100,18 @@ This _width_ gives the width of the svg element in which the network is rendered
 
 <a href="#network_start" name="network_start">#</a> <i>network</i>.<b>start</b>([<i>start</i>])
 
-_start_ represents the date (a string value) which the animation begins at. If _start_ is not specified, returns the first date found in data.links.
+_start_ represents the date (a UNIX Epoch timestamp) which the animation begins at. If _start_ is not specified, returns the first date found in data.links.
 
 <a href="#network_end" name="network_end">#</a> <i>network</i>.<b>end</b>([<i>end</i>])
 
-_end_ represents the date (a string value) which the animation stops. If _end_ is not specified, returns the last date found in data.links.
+_end_ represents the date (a UNIX Epoch timestamp) which the animation stops. If _end_ is not specified, returns the last date found in data.links.
 
 <a href="#network_style" name="network_style">#</a> <i>network</i>.<b>style</b>([<i>style</i>])
 
-The _style_ represents the animation type. If _style_ is not specified, it defaults to a static render of graph only at the specified _start_ value, ignoring the _end_ value, if provided. If _style_ is 'auto', the animation runs upon function invocation, displaying each iteration between a range of dates between _start_ and _end_ value. If _style_ is 'step', then only a transition between _start_ and _end_ value is displayed.
+The _style_ represents the animation parameters. If _style_ is not specified, it defaults to `{mode: null, step: 'day', show_time: false}`. This is a static render of graph only at the specified _start_ value, ignoring the _end_ value, if provided.
+
+If _style.mode_ is 'auto', the animation runs upon function invocation, displaying each iteration between a range of dates between _start_ and _end_ value. If _style.mode_ is 'step', then only a transition between _start_ and _end_ value is displayed.
+
+_style.step_: represents the time iteration gap and has to be any of the following values: `['year', 'month', 'day', 'week', 'hour', 'minute', 'second', 'millisecond']`
+
+_style.show_time_: allows user to show or hide the timestamp header

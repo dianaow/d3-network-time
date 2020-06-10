@@ -1,6 +1,6 @@
 {
   "name": "d3-network-time",
-  "version": "0.0.2",
+  "version": "1.0.0",
   "description": "a d3 plugin to create a temporal network",
   "keywords": [
     "d3",

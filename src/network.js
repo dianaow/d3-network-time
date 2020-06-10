@@ -6,31 +6,14 @@ import { nest } from "d3-collection"
 import { transition } from "d3-transition"
 
 import * as Consts from "./consts"
-import { generatePath } from "./utils"
-
-function processTimeline(cases) {
-  const timeline = nest()
-    .key(function (d) {
-      return d.date
-    })
-    .rollup(function (leaves) {
-      return leaves.length
-    })
-    .entries(cases)
-
-  timeline.forEach((d) => {
-    d.key = Consts.parseDate(d.key)
-  })
-
-  return timeline
-}
+import { generatePath, getDates } from "./utils"
 
 export function network(selector) {
   let width = 800
   let height = 800
-  let style = null
-  let start = ""
-  let end = ""
+  let style = { mode: null, step: "day", show_time: "false" }
+  let start = new Date()
+  let end = new Date()
 
   const linkedByIndex = []
   const { colorAccessor, nodeRadius } = Consts.scales
@@ -65,10 +48,23 @@ export function network(selector) {
   }
 
   function networkLayout({ ...data }) {
+    const { mode, step, show_time } = style
     const graphWrapper = { width, height }
     selector = selector || "body"
 
+    const timeline = getDates(start, end, step)
+
+    let START = timeline[0] //if start date is not specified, default to first date found in data
+    let END = timeline[timeline.length - 1] //if end date is not specified, default to last date found in data
+    data.date = START
+
+    const current = Object.assign({}, data)
+
     if (select(selector).select("svg").empty()) {
+      if (show_time === true) {
+        select(selector).append("h1").attr("class", "timeHeader")
+      }
+
       const svg = select(selector)
         .append("svg")
         .attr("class", "networkWrapper")
@@ -83,31 +79,24 @@ export function network(selector) {
       g.append("g").attr("class", "nodes")
     }
 
-    const timeline = processTimeline(data.links)
-    start = start || timeline[0].key //if start date is not specified, default to first date found in data
-    end = end || timeline[timeline.length - 1].key //if end date is not specified, default to last date found in data
-    let START = typeof start === "string" ? Consts.parseDate(start) : start
-    let END = typeof end === "string" ? Consts.parseDate(end) : end
-    data.date = START
-
-    const current = Object.assign({}, data)
-
-    if (style === null) {
+    if (mode === null) {
       updateGraph(data, current)
-    } else if (style === "auto") {
+    } else if (mode === "auto") {
       let T, index
       let timerun = { playing: true, status: "play", initial: true }
-      let dates = timeline.map((d) => d.key.getTime())
-      dates = dates.filter((d) => (d >= START.getTime()) & (d <= END.getTime()))
+      let dates = timeline.map((d) => d)
+      dates = dates.filter((d) => (d >= START) & (d <= END))
+
       if (timerun.initial) {
         index = 0
       } else {
-        index = dates.indexOf(current.date.getTime()) // restart animation from date last stopped at
+        index = dates.indexOf(current.date) // restart animation from date last stopped at
       }
 
       if (timerun.playing) {
         T = setInterval(function () {
-          current.date = timeline[index].key
+          current.date = timeline[index]
+          d3.select(".timeHeader").html(current.date)
           let graph = updateGraph(data, current)
           current.nodes = graph.nodes
           current.links = graph.links
@@ -121,7 +110,7 @@ export function network(selector) {
 
       if ((timerun.playing === false) & (timerun.status === "pause")) {
         clearInterval(T)
-        current.date = timeline[index].key
+        current.date = timeline[index]
         let graph = updateGraph(data, current)
         current.nodes = graph.nodes
         current.links = graph.links
@@ -129,12 +118,12 @@ export function network(selector) {
 
       if ((timerun.playing === false) & (timerun.status === "end")) {
         clearInterval(T)
-        current.date = timeline[dates.length - 1].key
+        current.date = timeline[dates.length - 1]
         let graph = updateGraph(data, current)
         current.nodes = graph.nodes
         current.links = graph.links
       }
-    } else if (style === "step") {
+    } else if (mode === "step") {
       let graph = updateGraph(data, current)
       setTimeout(function () {
         current.date = END // date
@@ -621,7 +610,7 @@ export function network(selector) {
       })
 
       nodes.forEach((d) => {
-        let conn = linkAllNodes.find((l) => l.key === d.id)
+        let conn = linkAllNodes.find((l) => l.key === d.id.toString())
         d.radius = root(d)
           ? Consts.rootRadius
           : conn
@@ -632,7 +621,7 @@ export function network(selector) {
       })
 
       links.forEach((d) => {
-        let conn = linkAllNodes.find((l) => l.key === d.end_id).value
+        let conn = linkAllNodes.find((l) => l.key === d.end_id.toString()).value
         d.strength = strengthScale(conn)
         d.distance = distanceScale(d.type)
       })
@@ -646,14 +635,12 @@ export function network(selector) {
     function updateGraph(OrigData, data) {
       simulation.stop()
       let { nodes, links, date } = data
-
       // when slider moves, these elements are to disappear on screen because they are confirmed after the selected date
-      var nodesRemove = OrigData.nodes.filter(
-        (d) => Consts.parseDate(d.date).getTime() > date.getTime()
-      )
-      var linksRemove = OrigData.links.filter(
-        (d) => Consts.parseDate(d.date).getTime() > date.getTime()
-      )
+      var nodesRemove = OrigData.nodes.filter((d) => {
+        //console.log(d.date * 1000, date.getTime())
+        return d.date * 1000 > date.getTime()
+      })
+      var linksRemove = OrigData.links.filter((d) => d.date * 1000 > date.getTime())
 
       // snapshot of all confirmed cases up until selected date
       // elements remain unchanged on screen if these cases are existing before the selected date
@@ -663,11 +650,14 @@ export function network(selector) {
       links = OrigData.links.filter(
         (d) => linksRemove.map((el) => el.id).indexOf(d.id) == -1
       )
-      console.log(nodes, links)
-      // remove links that do not have either a start or end node in nodes variable
+
+      // remove links that do not have either a start and end node in nodes variable
       let nodeIDs = nodes.map((d) => d.id)
-      links = links.filter((d) => nodeIDs.indexOf(d.start_id) !== -1)
-      links = links.filter((d) => nodeIDs.indexOf(d.end_id) !== -1)
+      links = links.filter((d) => {
+        return (
+          (nodeIDs.indexOf(d.start_id) !== -1) & (nodeIDs.indexOf(d.end_id) !== -1)
+        )
+      })
 
       let newEle = updateAttributes(nodes, links)
       nodes = newEle.nodes

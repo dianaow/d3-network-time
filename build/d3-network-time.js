@@ -33,14 +33,8 @@ var linkOpacity = 1;
 var linkTextOpacity = 0;
 var linkTextSize = 8;
 var transitionDuration = 750;
-var formatYear = d3TimeFormat.timeFormat("%Y");
-var formatDate = d3TimeFormat.timeFormat("%d %b %Y");
-var formatFullDate = d3TimeFormat.timeFormat("%d/%m/%y");
+var strictIsoParse = d3TimeFormat.utcParse("%Y-%m-%dT%H:%M:%S.%LZ");
 var parseDate = d3TimeFormat.timeParse("%Y-%m-%d");
-var parseDate1 = d3TimeFormat.timeParse("%Y");
-var parseDate2 = d3TimeFormat.timeParse("%b %Y");
-var currentDateString = "2020-05-11";
-var currentDate = parseDate(currentDateString);
 var nodeRadiusScale = d3Scale.scaleSqrt().domain([1, 50]).range([10, nodeRadius]);
 var colorScale = d3Scale.scaleOrdinal().range(["white", "aqua", "fuchsia"]).domain(["root", "parent", "children"]);
 var scales = {
@@ -80,24 +74,98 @@ function generatePath(d) {
   return "M" + sourceNewX + "," + sourceNewY + "L" + midX + "," + midY + "L" + targetNewX + "," + targetNewY;
 }
 
-function processTimeline(cases) {
-  var timeline = d3Collection.nest().key(function (d) {
-    return d.date;
-  }).rollup(function (leaves) {
-    return leaves.length;
-  }).entries(cases);
-  timeline.forEach(function (d) {
-    d.key = parseDate(d.key);
-  });
-  return timeline;
+Date.prototype.addYears = function (value) {
+  var date = new Date(this.valueOf());
+  date.setFullYear(date.getFullYear() + value);
+  return date;
+};
+
+Date.prototype.addMonths = function (value) {
+  var date = new Date(this.valueOf());
+  date.setMonth(date.getMonth() + value);
+  return date;
+};
+
+Date.prototype.addDays = function (value) {
+  var date = new Date(this.valueOf());
+  date.setDate(date.getDate() + value);
+  return date;
+};
+
+Date.prototype.addWeeks = function (value) {
+  var date = new Date(this.valueOf());
+  date.setDate(date.getDate() + value * 7);
+  return date;
+};
+
+Date.prototype.addHours = function (value) {
+  var date = new Date(this.valueOf());
+  date.setHours(date.getHours() + value);
+  return date;
+};
+
+Date.prototype.addMinutes = function (value) {
+  var date = new Date(this.valueOf());
+  date.setMinutes(date.getMinutes() + value);
+  return date;
+};
+
+Date.prototype.addSeconds = function (value) {
+  var date = new Date(this.valueOf());
+  date.setSeconds(date.getSeconds() + value);
+  return date;
+};
+
+Date.prototype.addMilliseconds = function (value) {
+  var date = new Date(this.valueOf());
+  date.setMilliseconds(date.getMilliseconds() + value);
+  return date;
+};
+
+function addFunc(currentDate, step) {
+  if (step === "year") {
+    return currentDate.addYears(1);
+  } else if (step === "month") {
+    return currentDate.addMonths(1);
+  } else if (step === "day") {
+    return currentDate.addDays(1);
+  } else if (step === "week") {
+    return currentDate.addWeeks(1);
+  } else if (step === "hour") {
+    return currentDate.addHours(1);
+  } else if (step === "minute") {
+    return currentDate.addMinutes(1);
+  } else if (step === "second") {
+    return currentDate.addSeconds(1);
+  } else if (step === "millisecond") {
+    return currentDate.addMilliseconds(1);
+  }
+}
+
+function getDates(startDate, stopDate, step) {
+  startDate = new Date(startDate * 1000);
+  stopDate = new Date(stopDate * 1000);
+  var dateArray = new Array();
+  var currentDate = startDate;
+
+  while (currentDate <= stopDate) {
+    dateArray.push(currentDate);
+    currentDate = addFunc(currentDate, step);
+  }
+
+  return dateArray;
 }
 
 function network(selector) {
   var width = 800;
   var height = 800;
-  var style = null;
-  var start = "";
-  var end = "";
+  var style = {
+    mode: null,
+    step: "day",
+    show_time: "false"
+  };
+  var start = new Date();
+  var end = new Date();
   var linkedByIndex = [];
   var _Consts$scales = scales,
       colorAccessor = _Consts$scales.colorAccessor,
@@ -125,33 +193,38 @@ function network(selector) {
   function networkLayout(_ref) {
     var data = _extends({}, _ref);
 
+    var _style = style,
+        mode = _style.mode,
+        step = _style.step,
+        show_time = _style.show_time;
     var graphWrapper = {
       width: width,
       height: height
     };
     selector = selector || "body";
+    var timeline = getDates(start, end, step);
+    var START = timeline[0]; //if start date is not specified, default to first date found in data
+
+    var END = timeline[timeline.length - 1]; //if end date is not specified, default to last date found in data
+
+    data.date = START;
+
+    var current = _extends({}, data);
 
     if (d3Selection.select(selector).select("svg").empty()) {
-      var svg = d3Selection.select(selector).append("svg").attr("class", "networkWrapper").attr("width", graphWrapper.width / 2).attr("height", graphWrapper.height / 2).attr("viewBox", [0, 0, graphWrapper.width, graphWrapper.height]).attr("fill", themeState.secondary);
+      if (show_time === true) {
+        d3Selection.select(selector).append("h1").attr("class", "timeHeader");
+      }
+
+      var svg = d3Selection.select(selector).append("svg").attr("class", "networkWrapper").attr("width", graphWrapper.width).attr("height", graphWrapper.height).attr("fill", themeState.secondary);
       var g = svg.append("g").attr("class", "network");
       g.append("g").attr("class", "links");
       g.append("g").attr("class", "nodes");
     }
 
-    var timeline = processTimeline(data.links);
-    start = start || timeline[0].key; //if start date is not specified, default to first date found in data
-
-    end = end || timeline[timeline.length - 1].key; //if end date is not specified, default to last date found in data
-
-    var START = typeof start === "string" ? parseDate(start) : start;
-    var END = typeof end === "string" ? parseDate(end) : end;
-    data.date = START;
-
-    var current = _extends({}, data);
-
-    if (style === null) {
+    if (mode === null) {
       updateGraph(data, current);
-    } else if (style === "auto") {
+    } else if (mode === "auto") {
       var T, index;
       var timerun = {
         playing: true,
@@ -159,21 +232,22 @@ function network(selector) {
         initial: true
       };
       var dates = timeline.map(function (d) {
-        return d.key.getTime();
+        return d;
       });
       dates = dates.filter(function (d) {
-        return d >= START.getTime() & d <= END.getTime();
+        return d >= START & d <= END;
       });
 
       if (timerun.initial) {
         index = 0;
       } else {
-        index = dates.indexOf(current.date.getTime()); // restart animation from date last stopped at
+        index = dates.indexOf(current.date); // restart animation from date last stopped at
       }
 
       if (timerun.playing) {
         T = setInterval(function () {
-          current.date = timeline[index].key;
+          current.date = timeline[index];
+          d3.select(".timeHeader").html(current.date);
           var graph = updateGraph(data, current);
           current.nodes = graph.nodes;
           current.links = graph.links;
@@ -192,7 +266,7 @@ function network(selector) {
 
       if (timerun.playing === false & timerun.status === "pause") {
         clearInterval(T);
-        current.date = timeline[index].key;
+        current.date = timeline[index];
         var graph = updateGraph(data, current);
         current.nodes = graph.nodes;
         current.links = graph.links;
@@ -200,14 +274,14 @@ function network(selector) {
 
       if (timerun.playing === false & timerun.status === "end") {
         clearInterval(T);
-        current.date = timeline[dates.length - 1].key;
+        current.date = timeline[dates.length - 1];
 
         var _graph = updateGraph(data, current);
 
         current.nodes = _graph.nodes;
         current.links = _graph.links;
       }
-    } else if (style === "step") {
+    } else if (mode === "step") {
       var _graph2 = updateGraph(data, current);
 
       setTimeout(function () {
@@ -621,7 +695,7 @@ function network(selector) {
       });
       nodes.forEach(function (d) {
         var conn = linkAllNodes.find(function (l) {
-          return l.key === d.id;
+          return l.key === d.id.toString();
         });
         d.radius = root(d) ? rootRadius : conn ? nodeRadius.scale(conn.value) : 4;
         d.color = rootparent(d) ? graphEle.nodeFill : colorAccessor(d);
@@ -629,7 +703,7 @@ function network(selector) {
       });
       links.forEach(function (d) {
         var conn = linkAllNodes.find(function (l) {
-          return l.key === d.end_id;
+          return l.key === d.end_id.toString();
         }).value;
         d.strength = strengthScale(conn);
         d.distance = distanceScale(d.type);
@@ -652,10 +726,11 @@ function network(selector) {
           date = data.date; // when slider moves, these elements are to disappear on screen because they are confirmed after the selected date
 
       var nodesRemove = OrigData.nodes.filter(function (d) {
-        return parseDate(d.date).getTime() > date.getTime();
+        //console.log(d.date * 1000, date.getTime())
+        return d.date * 1000 > date.getTime();
       });
       var linksRemove = OrigData.links.filter(function (d) {
-        return parseDate(d.date).getTime() > date.getTime();
+        return d.date * 1000 > date.getTime();
       }); // snapshot of all confirmed cases up until selected date
       // elements remain unchanged on screen if these cases are existing before the selected date
 
@@ -668,17 +743,13 @@ function network(selector) {
         return linksRemove.map(function (el) {
           return el.id;
         }).indexOf(d.id) == -1;
-      });
-      console.log(nodes, links); // remove links that do not have either a start or end node in nodes variable
+      }); // remove links that do not have either a start and end node in nodes variable
 
       var nodeIDs = nodes.map(function (d) {
         return d.id;
       });
       links = links.filter(function (d) {
-        return nodeIDs.indexOf(d.start_id) !== -1;
-      });
-      links = links.filter(function (d) {
-        return nodeIDs.indexOf(d.end_id) !== -1;
+        return nodeIDs.indexOf(d.start_id) !== -1 & nodeIDs.indexOf(d.end_id) !== -1;
       });
       var newEle = updateAttributes(nodes, links);
       nodes = newEle.nodes;

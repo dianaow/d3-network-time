@@ -1,5 +1,5 @@
 import { scaleSqrt, scaleOrdinal } from "d3-scale"
-import { timeFormat, timeParse } from "d3-time-format"
+import { timeFormat, timeParse, utcParse } from "d3-time-format"
 
 // set node, link, text color and dimensions
 export const rootRadius = 30
@@ -21,6 +21,7 @@ export const linkTextOpacity = 0
 export const linkTextSize = 8
 export const transitionDuration = 750
 
+export const strictIsoParse = utcParse("%Y-%m-%dT%H:%M:%S.%LZ")
 export const parseDate = timeParse("%Y-%m-%d")
 
 const nodeRadiusScale = scaleSqrt().domain([1, 50]).range([10, nodeRadius])
