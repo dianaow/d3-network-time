@@ -96,7 +96,7 @@ export function network(selector) {
       if (timerun.playing) {
         T = setInterval(function () {
           current.date = timeline[index]
-          d3.select(".timeHeader").html(current.date)
+          select(".timeHeader").html(current.date)
           let graph = updateGraph(data, current)
           current.nodes = graph.nodes
           current.links = graph.links

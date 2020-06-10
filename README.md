@@ -7,7 +7,7 @@ This is a d3 plugin to create a temporal network visualization.
 - dynamic: animates the evolution of the network over time, with the option to display each iteration between dates, or just a single step transition between two dates
 - static: only displays the network at a specific point in time
 
-![](example.mov)
+![alt text](https://github.com/dianaow/d3-network-time/raw/master/example.gif "Example GIF")
 
 ## Examples
 
@@ -110,7 +110,7 @@ _end_ represents the date (a UNIX Epoch timestamp) which the animation stops. If
 
 The _style_ represents the animation parameters. If _style_ is not specified, it defaults to `{mode: null, step: 'day', show_time: false}`. This is a static render of graph only at the specified _start_ value, ignoring the _end_ value, if provided.
 
-If _style.mode_ is 'auto', the animation runs upon function invocation, displaying each iteration between a range of dates between _start_ and _end_ value. If _style.mode_ is 'step', then only a transition between _start_ and _end_ value is displayed.
+If _style.mode_ is <b>'auto'</b>, the animation runs upon function invocation, displaying each iteration between a range of dates between _start_ and _end_ value. If _style.mode_ is <b>'step'</b>, then only a transition between _start_ and _end_ value is displayed.
 
 _style.step_: represents the time iteration gap and has to be any of the following values: `['year', 'month', 'day', 'week', 'hour', 'minute', 'second', 'millisecond']`
 

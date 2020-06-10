@@ -1,5 +1,5 @@
 import { scaleSqrt, scaleOrdinal } from "d3-scale"
-import { timeFormat, timeParse, utcParse } from "d3-time-format"
+import { timeParse, utcParse } from "d3-time-format"
 
 // set node, link, text color and dimensions
 export const rootRadius = 30
