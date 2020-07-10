@@ -22,14 +22,32 @@
       const processedNodes = processNodes(nodes, links)
       const data = {nodes: processedNodes, links: processedLinks}
 
-      console.log(data)
+      //console.log(data)
 
-      d3.network('.Network')
-        .width(screen.width)
-        .height(screen.height)
-        .start(1217567877)
-        .end(1218036494)
-        .style({mode: 'auto', step: 'day', show_time: true})(data)
+      var forceCharge = d3.forceManyBody().strength(-30)
+      var forceCollide = d3.forceCollide(function (d) { return d.radius * 2})
+
+      const simulation = d3.forceSimulation().force(
+          "link",
+          d3.forceLink()
+            .strength(function (d) {
+              return d.strength
+            })
+        )
+        .force("charge", forceCharge)
+        .force("collide", forceCollide)
+        .force(
+          "center",
+          d3.forceCenter(screen.width / 2, screen.height / 2)
+        )
+
+        d3.network(simulation)
+          .selector('.Network')
+          .width(screen.width)
+          .height(screen.height)
+          .start(1217567877)
+          .end(1218036494)
+          .animation({mode: 'auto', step: 'day', show_time: true })(data)
 
     }
 
@@ -49,6 +67,7 @@
       nodes.forEach((d,i) => {
         let link = links.find(el=>el.end_id === d.id) || links.find(el=>el.start_id === d.id)
         d.date = +link.date
+        d.value = 1
       })
 
       return nodes

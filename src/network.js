@@ -1,56 +1,25 @@
 import * as d3Force from "d3-force"
 import { select } from "d3-selection"
-import { scaleOrdinal, scaleLinear } from "d3-scale"
-import { sum, extent } from "d3-array"
-import { nest } from "d3-collection"
 import { transition } from "d3-transition"
-
-import * as Consts from "./consts"
+import { defaultGraphElements } from "./consts"
 import { generatePath, getDates } from "./utils"
 
-export function network(selector) {
+export function network(simulation) {
   let width = 800
   let height = 800
-  let style = { mode: null, step: "day", show_time: "false" }
+  let style = defaultGraphElements
+  let animation = { mode: null, step: "day", show_time: "false" }
   let start = new Date()
   let end = new Date()
+  let selector = "body"
 
   const linkedByIndex = []
-  const { colorAccessor, nodeRadius } = Consts.scales
-  let nodeTextOpacity = Consts.nodeTextOpacity
-  let linkTextOpacity = Consts.linkTextOpacity
-  let Scene = 0
-
-  const simulation = d3Force.forceSimulation().force(
-    "link",
-    d3Force
-      .forceLink()
-      .distance(function (d) {
-        return d.distance
-      })
-      .strength(function (d) {
-        return d.strength
-      })
-  )
-
-  const themeState = {
-    type: "light",
-    primary: "#f5f5f5",
-    secondary: "#333333",
-  }
-
-  const graphEle = {
-    nodeFill: themeState.primary,
-    nodeStroke: themeState.secondary,
-    nodeTextFill: themeState.secondary,
-    linkStroke: themeState.secondary,
-    linkTextFill: themeState.secondary,
-  }
 
   function networkLayout({ ...data }) {
-    const { mode, step, show_time } = style
+    const graphEle = style
+    const { mode, step, show_time } = animation
     const graphWrapper = { width, height }
-    selector = selector || "body"
+    simulation = simulation || d3Force.forceSimulation()
 
     const timeline = getDates(start, end, step)
 
@@ -70,7 +39,7 @@ export function network(selector) {
         .attr("class", "networkWrapper")
         .attr("width", graphWrapper.width)
         .attr("height", graphWrapper.height)
-        .attr("fill", themeState.secondary)
+        .attr("fill", "transparent")
 
       const g = svg.append("g").attr("class", "network")
 
@@ -157,7 +126,7 @@ export function network(selector) {
         .exit()
         .select("circle")
         .transition()
-        .duration(Consts.transitionDuration)
+        .duration(graphEle.transitionDuration)
         .attr("r", 0)
         .remove()
 
@@ -165,14 +134,18 @@ export function network(selector) {
         .exit()
         .select("rect")
         .transition()
-        .duration(Consts.transitionDuration)
+        .duration(graphEle.transitionDuration)
         .attr("width", 0)
         .attr("height", 0)
         .remove()
 
       graphNodesData.exit().select("text").remove()
 
-      graphNodesData.exit().transition().duration(Consts.transitionDuration).remove()
+      graphNodesData
+        .exit()
+        .transition()
+        .duration(graphEle.transitionDuration)
+        .remove()
 
       let graphNodesEnter = graphNodesData
         .enter()
@@ -227,8 +200,8 @@ export function network(selector) {
         .attr("stroke-width", function (d) {
           return d.strokeWidth
         })
-        .attr("stroke", function () {
-          return graphEle.nodeStroke
+        .attr("stroke", function (d) {
+          return d.strokeColor
         })
         .attr("opacity", function (d) {
           return d.opacity
@@ -243,10 +216,10 @@ export function network(selector) {
       textChildrenNode
         .append("text")
         .attr("class", "node-label")
-        .attr("font-size", `${Consts.nodeTextSize}px`)
+        .attr("font-size", `${graphEle.nodeTextSize}px`)
         .attr("text-anchor", "middle")
         .attr("fill", graphEle.nodeTextFill)
-        .attr("opacity", Consts.nodeTextOpacity)
+        .attr("opacity", graphEle.nodeTextOpacity)
         .attr("x", (d) => (berects(d) ? d.radius : 0))
         .attr("y", (d) => (berects(d) ? -10 : -d.radius - 8))
         .text((d) => `${d.id}`)
@@ -256,7 +229,7 @@ export function network(selector) {
       textRootNode
         .append("text")
         .attr("class", "root-label")
-        .attr("font-size", `${Consts.nodeTextSize * 2}px`)
+        .attr("font-size", `${graphEle.nodeTextSize * 2}px`)
         .attr("text-anchor", "middle")
         .attr("fill", graphEle.nodeTextFill)
         .attr("opacity", 1)
@@ -287,7 +260,7 @@ export function network(selector) {
 
       graphNodesData
         .transition()
-        .duration(Consts.transitionDuration)
+        .duration(graphEle.transitionDuration)
         .attr("transform", function (d) {
           if (berects(d)) {
             return "translate(" + (d.x - d.radius) + "," + (d.y - d.radius) + ")"
@@ -349,7 +322,7 @@ export function network(selector) {
         .exit()
         .select("path")
         .transition()
-        .duration(Consts.transitionDuration)
+        .duration(graphEle.transitionDuration)
         .attr("d", (d) =>
           generatePath(
             {
@@ -362,7 +335,11 @@ export function network(selector) {
         .attr("opacity", 0)
         .remove()
 
-      graphLinksData.exit().transition().duration(Consts.transitionDuration).remove()
+      graphLinksData
+        .exit()
+        .transition()
+        .duration(graphEle.transitionDuration)
+        .remove()
 
       let graphLinksEnter = graphLinksData
         .enter()
@@ -375,7 +352,6 @@ export function network(selector) {
         .attr("id", function (d) {
           return "path-" + linkKey(d)
         })
-        .attr("marker-mid", "url(#arrowhead)")
         .attr("stroke-width", function (d) {
           return d.strokeWidth
         })
@@ -397,10 +373,10 @@ export function network(selector) {
       graphLinksEnter
         .append("text")
         .attr("class", "edge-label")
-        .attr("font-size", `${Consts.linkTextSize}px`)
+        .attr("font-size", `${graphEle.linkTextSize}px`)
         .attr("text-anchor", "middle")
         .attr("fill", graphEle.linkTextFill)
-        .attr("opacity", Consts.linkTextOpacity)
+        .attr("opacity", graphEle.linkTextOpacity)
         .attr("dy", -2)
         .append("textPath")
         .attr("xlink:href", (d) => "#path-" + linkKey(d))
@@ -412,7 +388,7 @@ export function network(selector) {
       graphLinksData
         .selectAll(".link")
         .transition()
-        .duration(Consts.transitionDuration)
+        .duration(graphEle.transitionDuration)
         .attr("opacity", (d) => d.opacity)
         .attr("d", function (d) {
           return generatePath(
@@ -428,24 +404,19 @@ export function network(selector) {
       ////////////////////////////////////// Graph Network: Create initeractivity ///////////////////////////////
       ///////////////////////////////////////////////////////////////////////////////////////////////////////////
       function hoverOver(d) {
-        if (Scene === 0) {
-          let hoverAttr = {
-            hover_textOpacity: 0,
-            hover_strokeOpacity: 0.2,
-            hover_arrow: "url(#arrowhead)",
-          }
-          highlightConnections(graphNodesData, graphLinksData, d, hoverAttr)
+        let hoverAttr = {
+          hover_textOpacity: 0,
+          hover_strokeOpacity: 0.2,
         }
+        highlightConnections(graphNodesData, graphLinksData, d, hoverAttr)
       }
 
       function hoverOut() {
-        if (Scene === 0) {
-          unhighlightConnections(graphNodesData, graphLinksData)
-        }
+        unhighlightConnections(graphNodesData, graphLinksData)
       }
 
       function highlightConnections(graphNodesData, graphLinksData, d, hoverAttr) {
-        const { hover_textOpacity, hover_strokeOpacity, hover_arrow } = hoverAttr
+        const { hover_textOpacity, hover_strokeOpacity } = hoverAttr
 
         function isConnected(a, b) {
           return (
@@ -454,39 +425,25 @@ export function network(selector) {
             a.id === b.id
           )
         }
-
-        function isDirectConn(d, o) {
-          if ((d.root_id === "Unknown") | (d.root_id === "Unlinked")) {
-            return isConnected(d, o) | (o.root_id === d.id)
-          } else {
-            return isConnected(d, o)
-          }
-        }
-
         graphNodesData
           .selectAll(".node")
-          .attr("opacity", function (o) {
-            const thisOpacity = isDirectConn(d, o) ? 1 : hover_strokeOpacity
-            //this.setAttribute('fill-opacity', thisOpacity)
-            return thisOpacity
-          })
-          .style("pointer-events", (o) => (isDirectConn(d, o) ? "auto" : "none"))
+          .attr("opacity", (o) => (isConnected(d, o) ? 1 : hover_strokeOpacity))
+          .style("pointer-events", (o) => (isConnected(d, o) ? "auto" : "none"))
 
         graphNodesData
           .selectAll(".root-label")
-          .attr("opacity", (o) => (isDirectConn(d, o) ? 1 : hover_textOpacity))
+          .attr("opacity", (o) => (isConnected(d, o) ? 1 : hover_textOpacity))
+
         graphNodesData
           .selectAll(".node-label")
-          .attr("opacity", (o) => (isDirectConn(d, o) ? 1 : hover_textOpacity))
+          .attr("opacity", (o) => (isConnected(d, o) ? 1 : hover_textOpacity))
 
         graphLinksData
           .selectAll(".link")
           .attr("opacity", (o) =>
             o.source === d || o.target === d ? 1 : hover_strokeOpacity
           )
-          .attr("marker-mid", (o) =>
-            o.source === d || o.target === d ? "url(#arrowheadOpaque)" : hover_arrow
-          )
+
         graphLinksData
           .selectAll(".edge-label")
           .attr("opacity", (o) =>
@@ -497,14 +454,18 @@ export function network(selector) {
       function unhighlightConnections(graphNodesData, graphLinksData) {
         graphNodesData
           .selectAll(".node")
-          .attr("opacity", Consts.nodeOpacity)
+          .attr("opacity", graphEle.nodeOpacity)
           .style("pointer-events", "auto")
 
         graphNodesData.selectAll(".root-label").attr("opacity", 1)
-        graphNodesData.selectAll(".node-label").attr("opacity", nodeTextOpacity)
+        graphNodesData
+          .selectAll(".node-label")
+          .attr("opacity", graphEle.nodeTextOpacity)
 
         graphLinksData.selectAll(".link").attr("opacity", 1)
-        graphLinksData.selectAll(".edge-label").attr("opacity", linkTextOpacity)
+        graphLinksData
+          .selectAll(".edge-label")
+          .attr("opacity", graphEle.linkTextOpacity)
       }
     } //draw: update nodes and edges of graph
 
@@ -545,62 +506,6 @@ export function network(selector) {
         }
       }
 
-      var linksTarget_nested = nest()
-        .key(function (d) {
-          return d.end_id
-        })
-        .rollup(function (leaves) {
-          return leaves.length
-        })
-        .entries(links)
-
-      var linksSource_nested = nest()
-        .key(function (d) {
-          return d.start_id
-        })
-        .rollup(function (leaves) {
-          return leaves.length
-        })
-        .entries(links)
-
-      var linksNested = []
-      linksTarget_nested.map(function (d) {
-        linksNested.push({ key: d.key, value: d.value })
-      })
-      linksSource_nested.map(function (d) {
-        linksNested.push({ key: d.key, value: d.value })
-      })
-
-      var linkAllNodes = nest()
-        .key(function (d) {
-          return d.key
-        })
-        .rollup(function (leaves) {
-          return sum(leaves, (d) => d.value)
-        })
-        .entries(linksNested)
-
-      // create custom link strength scale based on total number of connections to node (node could be either a source or target)
-      var strengthScale = scaleLinear()
-        .domain(extent(linkAllNodes, (d) => d.value))
-        .range([0.4, 0.3])
-
-      // create custom link distance scale based on node type
-      var distanceScale = scaleOrdinal()
-        .domain(["root", "parent", "child"])
-        .range([150, 40, 30])
-
-      nodes.forEach((d) => {
-        d.strokeWidth = Consts.nodeStrokeWidth
-        d.opacity = Consts.nodeOpacity
-      })
-
-      links.forEach((d) => {
-        d.strokeColor = graphEle.linkStroke
-        d.strokeWidth = Consts.linkStrokeWidth
-        d.opacity = Consts.linkOpacity
-      })
-
       nodes.forEach((d) => {
         d.type = findType(d)
       })
@@ -610,20 +515,18 @@ export function network(selector) {
       })
 
       nodes.forEach((d) => {
-        let conn = linkAllNodes.find((l) => l.key === d.id.toString())
-        d.radius = root(d)
-          ? Consts.rootRadius
-          : conn
-          ? nodeRadius.scale(conn.value)
-          : 4
-        d.color = rootparent(d) ? graphEle.nodeFill : colorAccessor(d)
-        d.strokeColor = root(d) ? graphEle.nodeStroke : colorAccessor(d)
+        d.radius = graphEle.radiusAccessor(d)
+        d.color = graphEle.nodeColorAccessor(d)
+        d.strokeColor = graphEle.nodeColorAccessor(d)
+        d.opacity = graphEle.nodeOpacityAccessor(d)
+        d.strokeWidth = graphEle.nodeStrokeWidth
       })
 
       links.forEach((d) => {
-        let conn = linkAllNodes.find((l) => l.key === d.end_id.toString()).value
-        d.strength = strengthScale(conn)
-        d.distance = distanceScale(d.type)
+        d.strokeColor = graphEle.linkColorAccessor(d)
+        d.strokeWidth = graphEle.linkWidthAccessor(d)
+        d.opacity = graphEle.linkOpacityAccessor(d)
+        d.strength = graphEle.strengthAccessor(d)
       })
 
       return { nodes: nodes, links: links, accessors: accessors }
@@ -682,19 +585,6 @@ export function network(selector) {
         d.y0 = d.y
       })
 
-      var forceCharge = d3Force.forceManyBody().strength(-30)
-      var forceCollide = d3Force.forceCollide(function (d) {
-        return d.radius * 2
-      })
-
-      simulation
-        .force("charge", forceCharge)
-        .force("collide", forceCollide)
-        .force(
-          "center",
-          d3Force.forceCenter(graphWrapper.width / 2, graphWrapper.height / 2)
-        )
-
       simulation.nodes(nodes)
       simulation.force("link").links(links)
       simulation.alpha(0.3).restart()
@@ -735,6 +625,10 @@ export function network(selector) {
 
   networkLayout.style = function (_) {
     return arguments.length ? ((style = _), networkLayout) : style
+  }
+
+  networkLayout.animation = function (_) {
+    return arguments.length ? ((animation = _), networkLayout) : animation
   }
 
   return networkLayout
