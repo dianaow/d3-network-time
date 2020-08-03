@@ -7,12 +7,13 @@ This is a d3 plugin to create a temporal network visualization.
 - dynamic: animates the evolution of the network over time, with the option to display each iteration between dates, or just a single step transition between two dates
 - static: only displays the network at a specific point in time
 
-![alt text](https://github.com/dianaow/d3-network-time/raw/master/example.gif "Example GIF")
+![alt text](https://github.com/dianaow/d3-network-time/raw/master/d3-network-time-gif.gif "Example GIF")
 
 ## Examples
 
 - an [example](https://github.com/dianaow/d3-network-time/blob/master/example/index.html) for a highly connected graph
-- an [example](https://github.com/dianaow/d3-network-time/blob/master/example/index.html) for a disjointed graph, showing how to use the API with element styling
+- an [example](https://github.com/dianaow/d3-network-time/blob/master/example/index1.html) for a disjointed graph, showing how to use the API with element styling
+- [Observable notebook](https://observablehq.com/@dianaow/temporal-network-visualization/3)
 
 ## Installing
 
@@ -22,7 +23,7 @@ If you use NPM, `npm install d3-network-time` and import it with
 import { network } from "d3-network-time"
 ```
 
-Otherwise, download the [latest build](https://github.com/dianaow/d3-network-time/tree/master/build). AMD, CommonJS, and vanilla environments are supported. In vanilla, you must include a script tag with the d3 library before including `d3-network-map.js`, and a d3 global is exported:
+Otherwise, download the [latest build](https://github.com/dianaow/d3-network-time/tree/master/build). AMD, CommonJS, and vanilla environments are supported. In vanilla, you must include a script tag with the d3 library before including `d3-network-time.js`, and a d3 global is exported:
 
 ```html
 <script src="https://d3js.org/d3.v4.min.js"></script>
@@ -39,8 +40,8 @@ Otherwise, download the [latest build](https://github.com/dianaow/d3-network-tim
     .selector(".Network")
     .width(1200)
     .height(800)
-    .start(1217567877)
-    .end(1218036494)
+    .start(1217567877000)
+    .end(1218036494000)
     .animation({ mode: "auto", step: "day", show_time: true })
     .style({ radiusAccessor })(data)
 </script>
