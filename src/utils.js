@@ -104,10 +104,11 @@ function addFunc(currentDate, step) {
 }
 
 export function getDates(startDate, stopDate, step) {
-  startDate = new Date(startDate * 1000)
-  stopDate = new Date(stopDate * 1000)
+  startDate = new Date(startDate)
+  stopDate = new Date(stopDate)
   var dateArray = new Array()
   var currentDate = startDate
+
   while (currentDate <= stopDate) {
     dateArray.push(currentDate)
     currentDate = addFunc(currentDate, step)

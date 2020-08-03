@@ -11,7 +11,8 @@ This is a d3 plugin to create a temporal network visualization.
 
 ## Examples
 
-- an [example](https://github.com/dianaow/d3-network-time/blob/master/example/index.html) showing how to use the API
+- an [example](https://github.com/dianaow/d3-network-time/blob/master/example/index.html) for a highly connected graph
+- an [example](https://github.com/dianaow/d3-network-time/blob/master/example/index.html) for a disjointed graph, showing how to use the API with element styling
 
 ## Installing
 
@@ -64,27 +65,27 @@ var data = {
   nodes: [
     {
       id: "1",
-      date: 1217567877,
+      date: 1217567877000,
     },
     {
       id: "2",
-      date: 1217567877,
+      date: 1217567877000,
     },
     {
       id: "3",
-      date: 1218036494,
+      date: 1218036494000,
     },
   ],
   links: [
     {
       start_id: "1",
       end_id: "2",
-      date: 1217567877,
+      date: 1217567877000,
     },
     {
       start_id: "1",
       end_id: "3",
-      date: 1218036494,
+      date: 1218036494000,
     },
   ],
 }

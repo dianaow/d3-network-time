@@ -10,12 +10,11 @@ const linkTextSize = 8
 const linkTextFill = "gray"
 const transitionDuration = 750
 
-const radiusScale = scaleSqrt().domain([1, 50]).range([3, 25])
 const colorScale = scaleOrdinal()
   .range(["#E10100", "#00bcd4", "#3f51b5"])
   .domain(["root", "parent", "children"])
 
-const radiusAccessor = (d) => radiusScale(d.value)
+const radiusAccessor = (d) => 3
 const nodeOpacityAccessor = () => 1
 const nodeColorAccessor = (d) => colorScale(d.type)
 const linkWidthAccessor = () => 2

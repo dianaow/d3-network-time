@@ -4,6 +4,21 @@ typeof define === 'function' && define.amd ? define(['exports', 'd3-force', 'd3-
 (global = global || self, factory(global.d3 = global.d3 || {}, global.d3, global.d3, global.d3, global.d3));
 }(this, (function (exports, d3Force, d3Selection, d3Transition, d3Scale) { 'use strict';
 
+function _defineProperty(obj, key, value) {
+  if (key in obj) {
+    Object.defineProperty(obj, key, {
+      value: value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+  } else {
+    obj[key] = value;
+  }
+
+  return obj;
+}
+
 function _extends() {
   _extends = Object.assign || function (target) {
     for (var i = 1; i < arguments.length; i++) {
@@ -22,6 +37,40 @@ function _extends() {
   return _extends.apply(this, arguments);
 }
 
+function ownKeys(object, enumerableOnly) {
+  var keys = Object.keys(object);
+
+  if (Object.getOwnPropertySymbols) {
+    var symbols = Object.getOwnPropertySymbols(object);
+    if (enumerableOnly) symbols = symbols.filter(function (sym) {
+      return Object.getOwnPropertyDescriptor(object, sym).enumerable;
+    });
+    keys.push.apply(keys, symbols);
+  }
+
+  return keys;
+}
+
+function _objectSpread2(target) {
+  for (var i = 1; i < arguments.length; i++) {
+    var source = arguments[i] != null ? arguments[i] : {};
+
+    if (i % 2) {
+      ownKeys(Object(source), true).forEach(function (key) {
+        _defineProperty(target, key, source[key]);
+      });
+    } else if (Object.getOwnPropertyDescriptors) {
+      Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
+    } else {
+      ownKeys(Object(source)).forEach(function (key) {
+        Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
+      });
+    }
+  }
+
+  return target;
+}
+
 var nodeStrokeWidth = 2;
 var nodeTextOpacity = 0.8;
 var nodeTextSize = 12;
@@ -30,11 +79,10 @@ var linkTextOpacity = 0;
 var linkTextSize = 8;
 var linkTextFill = "gray";
 var transitionDuration = 750;
-var radiusScale = d3Scale.scaleSqrt().domain([1, 50]).range([3, 25]);
 var colorScale = d3Scale.scaleOrdinal().range(["#E10100", "#00bcd4", "#3f51b5"]).domain(["root", "parent", "children"]);
 
 var radiusAccessor = function radiusAccessor(d) {
-  return radiusScale(d.value);
+  return 3;
 };
 
 var nodeOpacityAccessor = function nodeOpacityAccessor() {
@@ -173,8 +221,8 @@ function addFunc(currentDate, step) {
 }
 
 function getDates(startDate, stopDate, step) {
-  startDate = new Date(startDate * 1000);
-  stopDate = new Date(stopDate * 1000);
+  startDate = new Date(startDate);
+  stopDate = new Date(stopDate);
   var dateArray = new Array();
   var currentDate = startDate;
 
@@ -189,7 +237,7 @@ function getDates(startDate, stopDate, step) {
 function network(simulation) {
   var width = 800;
   var height = 800;
-  var style = defaultGraphElements;
+  var style = {};
   var animation = {
     mode: null,
     step: "day",
@@ -203,7 +251,8 @@ function network(simulation) {
   function networkLayout(_ref) {
     var data = _extends({}, _ref);
 
-    var graphEle = style;
+    var graphEle = _objectSpread2(_objectSpread2({}, defaultGraphElements), style);
+
     var _animation = animation,
         mode = _animation.mode,
         step = _animation.step,
@@ -672,11 +721,10 @@ function network(simulation) {
           date = data.date; // when slider moves, these elements are to disappear on screen because they are confirmed after the selected date
 
       var nodesRemove = OrigData.nodes.filter(function (d) {
-        //console.log(d.date * 1000, date.getTime())
-        return d.date * 1000 > date.getTime();
+        return d.date > date.getTime();
       });
       var linksRemove = OrigData.links.filter(function (d) {
-        return d.date * 1000 > date.getTime();
+        return d.date > date.getTime();
       }); // snapshot of all confirmed cases up until selected date
       // elements remain unchanged on screen if these cases are existing before the selected date
 

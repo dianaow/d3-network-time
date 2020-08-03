@@ -22,8 +22,6 @@
       const processedNodes = processNodes(nodes, links)
       const data = {nodes: processedNodes, links: processedLinks}
 
-      //console.log(data)
-
       var forceCharge = d3.forceManyBody().strength(-30)
       var forceCollide = d3.forceCollide(function (d) { return d.radius * 2})
 
@@ -45,8 +43,8 @@
           .selector('.Network')
           .width(screen.width)
           .height(screen.height)
-          .start(1217567877)
-          .end(1218036494)
+          .start(1217567877000)
+          .end(1218036494000)
           .animation({mode: 'auto', step: 'day', show_time: true })(data)
 
     }
@@ -55,7 +53,7 @@
 
       links.forEach((d,i) => {
         d.id = i
-        d.date = +d.timestamp
+        d.date = +d.timestamp * 1000
       })
 
       return links

@@ -7,7 +7,7 @@ import { generatePath, getDates } from "./utils"
 export function network(simulation) {
   let width = 800
   let height = 800
-  let style = defaultGraphElements
+  let style = {}
   let animation = { mode: null, step: "day", show_time: "false" }
   let start = new Date()
   let end = new Date()
@@ -16,7 +16,7 @@ export function network(simulation) {
   const linkedByIndex = []
 
   function networkLayout({ ...data }) {
-    const graphEle = style
+    const graphEle = { ...defaultGraphElements, ...style }
     const { mode, step, show_time } = animation
     const graphWrapper = { width, height }
     simulation = simulation || d3Force.forceSimulation()
@@ -538,12 +538,12 @@ export function network(simulation) {
     function updateGraph(OrigData, data) {
       simulation.stop()
       let { nodes, links, date } = data
+
       // when slider moves, these elements are to disappear on screen because they are confirmed after the selected date
       var nodesRemove = OrigData.nodes.filter((d) => {
-        //console.log(d.date * 1000, date.getTime())
-        return d.date * 1000 > date.getTime()
+        return d.date > date.getTime()
       })
-      var linksRemove = OrigData.links.filter((d) => d.date * 1000 > date.getTime())
+      var linksRemove = OrigData.links.filter((d) => d.date > date.getTime())
 
       // snapshot of all confirmed cases up until selected date
       // elements remain unchanged on screen if these cases are existing before the selected date
